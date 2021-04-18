@@ -1,0 +1,57 @@
+Table Schema 
+
+airports.csv
+    0   ID 
+    1   Name
+    2   City
+    3   Country
+    4   IATA
+    5   ICAO
+    6   Lat
+    7   Long
+    8   Altitude
+    9   Timezone
+    10  DST
+    11  TZ database time
+    12  Type
+    13  Source
+
+airlines.csv
+    0   ID
+    1   Name
+    2   Alais
+    3   IATA   
+    4   ICAO
+    5   Callsign
+    6   Country
+    7   Active
+
+aircraft_type.csv
+    0   Code
+    1   Description
+
+aircraft-config.csv
+    0   Code
+    1   Description
+
+service-class.csv
+    0   Code
+    1   Description
+
+2018.csv/2019.csv/2020.csv
+    0   SEATS
+    1   PASSENGERS
+    2   FREIGHT
+    3   MAIL
+    4   AIR_TIME
+    5   CARRIER
+    6   ORIGIN
+    7   ORIGIN_STATE_ABR
+    8   DEST
+    9   DEST_STATE_ABR
+    10  AIRCRAFT_GROUP
+    11  AIRCRAFT_TYPE
+    12  AIRCRAFT_CONFIG
+    13  YEAR
+    14  MONTH
+    15  CLASS
