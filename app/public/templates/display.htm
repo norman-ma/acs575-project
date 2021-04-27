@@ -1,7 +1,7 @@
 <div id="display">
     <div id="display-header">
         <h1>{{title}}</h1>
-        <p>{{subtitle}}</p>
+        <p class='subtitle'>{{subtitle}}</p>
         <div id="search-area" ng-controller='SearchController'>
             <div class="autocomplete" ng-blur="suggestions = []">
                 <input id="search-bar" class='search-bar' type="text" placeholder="{{category}}" ng-model='current.name' ng-change="updateSuggestions()" ng-focus="updateSuggestions()" >
@@ -15,6 +15,9 @@
         </div>
     </div>
     <div id="display-area">
+        <div id="map-area" ng-if="mapUrl">
+            <iframe loading="lazy" ng-src="{{mapUrl}}"></iframe>
+        </div>
         <div ng-if="insights.length > 0" id="insight-area">
             <div class="insight" ng-repeat="insight in insights">
                 <h3>{{insight.description}}</h3>

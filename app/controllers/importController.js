@@ -3,7 +3,7 @@ const appController = require('./appController')
 
 
 const queries = {
-    airport: `INSERT INTO airport VALUES($1, $2, $3, $4, ST_GeographyFromText('Point($5 $6)'), $7);`,
+    airport: `INSERT INTO airport VALUES($1, $2, $3, $4, ST_GeographyFromText('Point($6 $5)'), $7);`,
     airline: 'INSERT INTO airline VALUES($1, $2, $3, $4, $5);',
     route: 'INSERT INTO airlineroute VALUES($1, $2, $3, $4);',
     routeinfo: 'INSERT INTO routeinfo VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
@@ -26,17 +26,18 @@ const insert = async (category, data) => {
             let list = existing.rows.map((value) => {value.routeid})
             routeid = Math.floor(1000 + Math.random() * 999000)
             while(list.includes(id)){
-                id = Math.floor(1000 + Math.random() * 999000)
+                routeid = Math.floor(1000 + Math.random() * 999000)
             }
             break
         case 'routeinfo':
             query = 'SELECT routeid FROM airlineroute WHERE origin = $1 AND destination = $2 AND airline = $3;'
             id = await db.query(query, [data.origin, data.destination, data.airline])
-            if(id.rows.length > 0){
-                routeid = id.rows[0]
+            if(id.rowCount > 0){
+                routeid = id.rows[0].routeid
             }else{
                 return "This route does not exist"                
             }      
+            break
         default:
             if(['airline', 'airport', 'aircraft'].includes(category)){
                 query = `SELECT ${category}id from ${category}`; 
@@ -70,7 +71,7 @@ const insert = async (category, data) => {
                 values = [routeid, data.year, data.month, data.aircraft, data.passengers, data.mail, data.freight, data.airtime, data.serviceclass, data.config]
                 result = await db.query(query, values)
                 break
-            case 'routeinfo':
+            case 'aircraft':
                 values = [data.id, data.description, data.group]
                 result = await db.query(query, values)
                 break
@@ -79,6 +80,9 @@ const insert = async (category, data) => {
                                     
         }
     }catch(err){
+        if(err.code === '23505'){
+            return `${['a', 'e', 'i', 'o','u'].includes(category.charAt(0)) ? 'An' : 'A'} ${category} record with this ID already exists`
+        }
         return 'An error occurred'        
     }
 
@@ -90,7 +94,7 @@ const parseLine = (category, values) => {
         airport: ['id', 'name', 'city', 'state', 'longitude', 'latitude', 'altitude'],
         airline: ['id', 'name', 'alias', 'callsign', 'country'],
         route: ['origin', 'destination', 'airline'],
-        routeinfo: ['origin', 'destination', 'airline', 'year', 'month', 'aircraft', 'passengers', 'mai', 'freight', 'airtime', 'serviceclass', 'config'],
+        routeinfo: ['origin', 'destination', 'airline', 'year', 'month', 'aircraft', 'passengers', 'mail', 'freight', 'airtime', 'serviceclass', 'config'],
         aircraft: ['id', 'description', 'group']
     }
 
@@ -139,6 +143,7 @@ module.exports = {
             let lines = data.split('\n')
             for(let line of lines){
                 let value = line.split(',').map((value) => {
+                    value = value.trim()
                     if(isNaN(value)){
                         return value
                     }else{

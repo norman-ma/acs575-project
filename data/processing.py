@@ -262,7 +262,7 @@ for a in airports.keys():
     query = 'INSERT INTO airport (airportid, airportname, city, state, airportlocation, altitude) VALUES(%s, %s, %s, %s, ST_GeographyFromText( \'Point( %s %s)\'), %s);'
     print(airport.to_string())
     try:
-        cur.execute(query, (airport.id, airport.name, airport.city, airport.state, airport.coord[0], airport.coord[1], airport.altitude))
+        cur.execute(query, (airport.id, airport.name, airport.city, airport.state, airport.coord[1], airport.coord[0], airport.altitude))
         conn.commit()
     except psycopg2.IntegrityError:
         conn.rollback()
@@ -338,7 +338,7 @@ for ri in route_info.keys():
     info = route_info[ri]
     query = 'INSERT INTO routeinfo VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     print(info.to_string())
-    cur.execute(query, (info.route.id, info.year, info.month, info.aircraft.id, info.no_passengers, info.mail_weight, info.freight_weight, info.airtime, info.service_class.id, info.aircraft.id, info.aircraft_config.id))
+    cur.execute(query, (info.route.id, info.year, info.month, info.aircraft.id, info.no_passengers, info.mail_weight, info.freight_weight, info.airtime, info.service_class.id, aircraft_config.id))
     conn.commit()
 
 conn.close()

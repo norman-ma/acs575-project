@@ -70,6 +70,11 @@ a:hover{
     background: inherit;
 }
 
+hr{
+    border: #323848 solid 1px;
+    width: 70%;
+}
+
 #display{
     position: absolute;
     left: 10%;
@@ -102,6 +107,10 @@ input[type='text'], input[type='number'], select{
 
 select{
     border-radius: 5px;
+}
+
+p.subtitle{
+    color: #EBEBEB
 }
 
 #search-area{
@@ -156,6 +165,20 @@ input[type='submit']{
     /*when navigating through the items using the arrow keys:*/
     background-color: DodgerBlue !important;
     color: #F5F5F5;
+}
+
+#map-area{
+    width: 87.3vw;
+    height: 20vw;
+
+}
+
+#map-area iframe{
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 3px 3px 10px black;
 }
 
 #insight-area {

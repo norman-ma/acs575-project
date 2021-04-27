@@ -20,11 +20,10 @@ module.exports = {
         if(['aircraft', 'aircraftconfiguration', 'aircraftgroup', 'airline', 'airlineroute', 'airport', 'routeinfo', 'serviceclass'].includes(table)){
             switch(table){
                 case 'airport':
-                    query = `SELECT airportid, airportname, city, state, ST_X(airportlocation::geometry) as latitude, ST_Y(airportlocation::geometry) as longitude, altitude FROM airport`
+                    query = `SELECT airportid, airportname, city, state, ST_Y(airportlocation::geometry) as latitude, ST_X(airportlocation::geometry) as longitude, altitude FROM airport`
                     break
                 case 'routeinfo':
                     if(search.fields.includes('origin') || search.fields.includes('destination') || search.fields.includes('airline')){
-
                         query = 'SELECT origin, destination, airline, year , month, aircraft, passengers, mail, freight, airtime, serviceclass, aircraftconfig FROM airlineroute JOIN routeinfo ON airlineroute.routeid = routeinfo.routeid'
                         break
                     }
@@ -83,7 +82,7 @@ module.exports = {
                         values.values[0],
                         values.values[1],
                         values.values[2],
-                        `Point(${values.values[3]} ${values.values[4]})`,
+                        `Point(${values.values[4]} ${values.values[3]})`,
                         values.values[5]
                     ]
                 }
@@ -144,14 +143,18 @@ module.exports = {
                     query = 'DELETE FROM airlineroute WHERE origin=$1 AND destination=$2 AND airline=$3;'
                     break;
                 case 'routeinfo':
-                    query = 'DELETE FROM airlineroute WHERE routeid in (SELECT FROM airlineroute WHERE origin=$1 AND destination=$2 AND airline=$3) AND year=$4 AND month=$5 AND aircraft=$6;'
+                    if(keys.length === 6){
+                        query = 'DELETE FROM airlineroute WHERE routeid in (SELECT FROM airlineroute WHERE origin=$1 AND destination=$2 AND airline=$3) AND year=$4 AND month=$5 AND aircraft=$6;'
+                    }else{
+                        query = 'DELETE FROM routeinfo WHERE routeid=$1 AND year=$2 AND month=$3 AND aircraft=$4;'
+                    }
                     break;
                 default: 
                     query = `DELETE FROM ${table} WHERE ${pk[table]}=$1;`
             }
 
             try{
-                await db.query(query, updatevals)
+                await db.query(query, keys)
                 appController.update()
                 res.send('Delete Successful')
             }catch(err){

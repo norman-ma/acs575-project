@@ -1,5 +1,3 @@
-const { airport, airline } = require("./testController")
-
 let lists = {}
 const init = async () => {
     let states= [
@@ -150,6 +148,9 @@ module.exports = {
     },
     show404: (req, res) => {
         res.sendFile('./views/404.html', {root: './'})
+    },
+    getAPIKey: (req, res) => {
+        res.send(process.env.API_KEY)
     },
     init: async(req, res) => {                
         console.log(lists)

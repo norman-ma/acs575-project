@@ -213,7 +213,7 @@ app.config(function($routeProvider){
             templateUrl: '/templates/display.htm',
             controller: 'AircraftController'
         })
-        .when("/aircraft/:aircraftID", {
+        .when("/aircraft/:aircraft", {
             templateUrl: '/templates/display.htm',
             controller: 'CraftController'
         })
@@ -484,22 +484,22 @@ app.controller('AirportsController', ['$scope', '$http', '$location', '$rootScop
         let res = result.data
         if(res){
             $scope.insights = [
-                {description: "Most popular origin airport for incoming passengers", elements: []},
-                {description: "Most popular origin airport for incoming mail", elements: []},
-                {description: "Most popular origin airport for incoming freight", elements: []},
-                {description: "Most popular destination airport for outgoing passengers", elements: []},
-                {description: "Most popular destination airport for outgoing mail", elements: []},
-                {description: "Most popular destination airport for outgoing freight", elements: []}
+                {description: "Most popular destination airport for incoming passengers", elements: []},
+                {description: "Most popular destination airport for incoming mail", elements: []},
+                {description: "Most popular destination airport for incoming freight", elements: []},
+                {description: "Most popular origin airport for outgoing passengers", elements: []},
+                {description: "Most popular origin airport for outgoing mail", elements: []},
+                {description: "Most popular origin airport for outgoing freight", elements: []}
             ]    
             for(let airport of res.incoming){
-                $scope.insights[0].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.passenger, link: `/#!airports/${airport.airport.id}`, unit: 'passengers'})
-                $scope.insights[1].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.mail, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
-                $scope.insights[2].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.freight, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
+                $scope.insights[0].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.passenger, link: `/#!airports/${airport.airport.id}`, unit: 'passengers'})
+                $scope.insights[1].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.mail, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
+                $scope.insights[2].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.freight, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
             }
             for(let airport of res.outgoing){
-                $scope.insights[3].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.passenger, link: `/#!airports/${airport.airport.id}`, unit: 'passengers'})
-                $scope.insights[4].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.mail, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
-                $scope.insights[5].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}`, value: airport.freight, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
+                $scope.insights[3].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.passenger, link: `/#!airports/${airport.airport.id}`, unit: 'passengers'})
+                $scope.insights[4].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.mail, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
+                $scope.insights[5].elements.push({name: `${airport.airport.id} ${airport.airport.name}, ${airport.airport.city}, ${airport.airport.state}`, value: airport.freight, link: `/#!airports/${airport.airport.id}`, unit: 'lbs'})
             }
 
             for(let i = 0; i < 6; i++){
@@ -509,7 +509,7 @@ app.controller('AirportsController', ['$scope', '$http', '$location', '$rootScop
     })    
 }])
 
-app.controller('AirportController', ['$scope', '$http', '$routeParams', '$location', '$rootScope', function($scope, $http, $routeParams, $location, $rootScope){
+app.controller('AirportController', ['$scope', '$http', '$routeParams', '$location', '$rootScope', '$sce', function($scope, $http, $routeParams, $location, $rootScope, $sce){
 
    $scope.values = $rootScope.lists.airports
     $scope.insights = []
@@ -517,73 +517,91 @@ app.controller('AirportController', ['$scope', '$http', '$routeParams', '$locati
     $scope.charts = []
     $scope.error = ''
     $scope.category = 'Airport'
-
-    $scope.search = (value) => $location.path(`/airports/${value}`)
     
+    $scope.search = (value) => $location.path(`/airports/${value}`)
+    $scope.coords ={
+        latitude: null, 
+        longitude: null
+    }
+    $scope.mapUrl = null;
+
     $http
-    .get(`/airport/${$routeParams.airport}`)
-    .then((result) => {
-        if(result.status !== 200){
-            console.error(result.statusText)
-            return
-        }
-        let res = result.data
-        $scope.title = `${res.airport.id} ${res.airport.name}`
-        $scope.subtitle = `${res.airport.city}, ${res.airport.state}`
-        if(res){
-            $scope.insights = [
-                {description: "Most popular incoming route for passengers", elements: []},                
-                {description: "Most popular incoming route for mail", elements: []},                
-                {description: "Most popular incoming route for freight", elements: []},
-                {description: "Most popular outgoing route for passengers", elements: []},
-                {description: "Most popular outgoing route for mail", elements: []},
-                {description: "Most popular outgoing route for freight", elements: []}
-            ]    
-            for(let route of res.incoming){
-                $scope.insights[0].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.passenger, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'passengers'})
-                $scope.insights[1].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.mail, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
-                $scope.insights[2].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.freight, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
+    .get('/apikey')
+    .then((key) => {
+        $scope.apikey = key.data;  
+    
+        $http
+        .get(`/airport/${$routeParams.airport}`)
+        .then((result) => {
+            if(result.status !== 200){
+                console.error(result.statusText)
+                return
             }
-            for(let route of res.outgoing){
-                $scope.insights[3].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.passenger, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'passengers'})
-                $scope.insights[4].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.mail, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
-                $scope.insights[5].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${route.route.destination.id}`, value: route.freight, link: `/#!routes/${route.route.origin.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
+            let res = result.data
+            if(res){
+                let airport = res.airport
+
+                $scope.title = `${airport.id} ${airport.name}`
+                $scope.subtitle = `${airport.city}, ${airport.state}`
+                $scope.coords.latitude = airport.latitude
+                $scope.coords.longitude = airport.longitude
+
+                $scope.mapUrl = $sce.trustAsResourceUrl(`https://www.google.com/maps/embed/v1/view?key=${$scope.apikey}&center=${$scope.coords.latitude}, ${$scope.coords.longitude}&zoom=14&maptype=satellite`)
+
+                $scope.insights = [
+                    {description: "Most popular incoming route for passengers", elements: []},                
+                    {description: "Most popular incoming route for mail", elements: []},                
+                    {description: "Most popular incoming route for freight", elements: []},
+                    {description: "Most popular outgoing route for passengers", elements: []},
+                    {description: "Most popular outgoing route for mail", elements: []},
+                    {description: "Most popular outgoing route for freight", elements: []}
+                ]    
+                for(let route of res.incoming){
+                    $scope.insights[0].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${airport.id}`, value: route.passenger, link: `/#!routes/${route.route.origin.id}/${airport.id}/${route.route.airline.id}`, unit: 'passengers'})
+                    $scope.insights[1].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${airport.id}`, value: route.mail, link: `/#!routes/${route.route.origin.id}/${airport.id}/${route.route.airline.id}`, unit: 'lbs'})
+                    $scope.insights[2].elements.push({name: `${route.route.airline.id}: ${route.route.origin.id} to ${airport.id}`, value: route.freight, link: `/#!routes/${route.route.origin.id}/${airport.id}/${route.route.airline.id}`, unit: 'lbs'})
+                }
+                for(let route of res.outgoing){
+                    $scope.insights[3].elements.push({name: `${route.route.airline.id}: ${airport.id} to ${route.route.destination.id}`, value: route.passenger, link: `/#!routes/${airport.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'passengers'})
+                    $scope.insights[4].elements.push({name: `${route.route.airline.id}: ${airport.id} to ${route.route.destination.id}`, value: route.mail, link: `/#!routes/${airport.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
+                    $scope.insights[5].elements.push({name: `${route.route.airline.id}: ${airport.id} to ${route.route.destination.id}`, value: route.freight, link: `/#!routes/${airport.id}/${route.route.destination.id}/${route.route.airline.id}`, unit: 'lbs'})
+                }
+
+                for(let i = 0; i < 6; i++){
+                    $scope.insights[i].elements.sort((a, b) => b.value - a.value)
+                } 
+
+                $scope.trends.bar = [
+                    {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
+                    {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                ]
+                for(let year of res.annual){
+                    $scope.trends.bar[0].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[0].chart.data.push(year.passenger)
+                    $scope.trends.bar[1].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[1].chart.data.push(year.mail)
+                    $scope.trends.bar[2].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[2].chart.data.push(year.freight)
+                }
+
+                $scope.trends.line = [
+                    {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
+                    {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                ]
+
+                for(let month of res.monthly){
+                    $scope.trends.line[0].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[0].chart.data[0].push(month.passenger)
+                    $scope.trends.line[1].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[1].chart.data[0].push(month.mail)
+                    $scope.trends.line[2].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[2].chart.data[0].push(month.freight)
+                }             
             }
-
-            for(let i = 0; i < 6; i++){
-                $scope.insights[i].elements.sort((a, b) => b.value - a.value)
-            } 
-            
-            $scope.trends.bar = [
-                {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-            ]
-            for(let year of res.annual){
-                $scope.trends.bar[0].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[0].chart.data.push(year.passenger)
-                $scope.trends.bar[1].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[1].chart.data.push(year.mail)
-                $scope.trends.bar[2].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[2].chart.data.push(year.freight)
-            }
-
-            $scope.trends.line = [
-                {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-            ]
-
-            for(let month of res.monthly){
-                $scope.trends.line[0].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[0].chart.data[0].push(month.passenger)
-                $scope.trends.line[1].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[1].chart.data[0].push(month.mail)
-                $scope.trends.line[2].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[2].chart.data[0].push(month.freight)
-            }             
-        }
-    })    
+        })   
+    }) 
 }])
 
 app.controller('AirlinesController', ['$scope', '$http', '$location', '$rootScope', function($scope, $http, $location, $rootScope){
@@ -644,8 +662,10 @@ app.controller('AirlineController', ['$scope', '$http', '$routeParams', '$locati
         }
         let res = result.data
         if(res){
-            $scope.title = `${res.airline.id} ${res.airline.name}`
-            $scope.subtitle = `${res.airline.country}`
+            let airline = res.airline
+
+            $scope.title = `${airline.id} ${airline.name}`
+            $scope.subtitle = `${airline.country} | Alias: ${airline.alias === '' ? 'N/A' : airline.alias} | Callsign: ${airline.callsign === '' ? 'N/A' : airline.callsign}`
 
             $scope.insights = [
                 {description: "Most popular routes for passengers", elements: []},                
@@ -653,9 +673,9 @@ app.controller('AirlineController', ['$scope', '$http', '$routeParams', '$locati
                 {description: "Most popular routes for freight", elements: []}
             ]    
             for(let route of res.routes){
-                $scope.insights[0].elements.push({name: `${res.airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.passenger, link: `/#!routes/${route.origin.id}/${route.destination.id}/${res.airline.id}`, unit: 'passengers'})
-                $scope.insights[1].elements.push({name: `${res.airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.mail, link: `/#!routes/${route.origin.id}/${route.destination.id}/${res.airline.id}`, unit: 'lbs'})
-                $scope.insights[2].elements.push({name: `${res.airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.freight, link: `/#!routes/${route.origin.id}/${route.destination.id}/${res.airline.id}`, unit: 'lbs'})
+                $scope.insights[0].elements.push({name: `${airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.passenger, link: `/#!routes/${route.origin.id}/${route.destination.id}/${airline.id}`, unit: 'passengers'})
+                $scope.insights[1].elements.push({name: `${airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.mail, link: `/#!routes/${route.origin.id}/${route.destination.id}/${airline.id}`, unit: 'lbs'})
+                $scope.insights[2].elements.push({name: `${airline.id}: ${route.origin.id} to ${route.destination.id}`, value: route.freight, link: `/#!routes/${route.origin.id}/${route.destination.id}/${airline.id}`, unit: 'lbs'})
             }
 
             for(let i = 0; i < 3; i++){
@@ -664,8 +684,8 @@ app.controller('AirlineController', ['$scope', '$http', '$routeParams', '$locati
             
             $scope.trends.bar = [
                 {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
             ]
             for(let year of res.annual){
                 $scope.trends.bar[0].chart.labels.push(`${year.year}`)
@@ -678,8 +698,8 @@ app.controller('AirlineController', ['$scope', '$http', '$routeParams', '$locati
 
             $scope.trends.line = [
                 {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
             ]
 
             for(let month of res.monthly){
@@ -737,7 +757,7 @@ app.controller('RoutesController', ['$scope', '$http', '$location', '$rootScope'
     })    
 }])
 
-app.controller('RouteController', ['$scope', '$http', '$routeParams', '$location', '$rootScope', function($scope, $http, $routeParams, $location, $rootScope){
+app.controller('RouteController', ['$scope', '$http', '$routeParams', '$location', '$rootScope', '$sce', function($scope, $http, $routeParams, $location, $rootScope, $sce){
 
     $scope.values = $rootScope.lists.routes
     $scope.insights = []
@@ -749,54 +769,83 @@ app.controller('RouteController', ['$scope', '$http', '$routeParams', '$location
         values = $('#search-bar')[0].name.split(':')
         $location.path(`/routes/${values[0]}/${values[1]}/${values[2]}`)
     }
-    
-    $http
-    .get(`/route/${$routeParams.origin}/${$routeParams.destination}/${$routeParams.airline}`)
-    .then((result) => {
-        if(result.status !== 200){
-            console.error(result.statusText)
-            return
+
+    $scope.coords ={
+        origin: {
+            latitude: null, 
+            longitude: null
+        },
+        destination: {
+            latitude: null, 
+            longitude: null
         }
-        let res = result.data
-        if(res){
-            $scope.title = `${res.route.airline.id}: ${res.route.origin.id} to ${res.route.destination.id}`
-            $scope.subtitle = `${res.route.airline.name}: ${res.route.origin.name}, ${res.route.origin.city} to ${res.route.destination.name}, ${res.route.destination.city}`
-            
-            $scope.trends.bar = [
-                {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Airtime 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M mins`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}},
-            ]
-            for(let year of res.annual){
-                $scope.trends.bar[0].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[0].chart.data.push(year.passenger)
-                $scope.trends.bar[1].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[1].chart.data.push(year.mail)
-                $scope.trends.bar[2].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[2].chart.data.push(year.freight)
-                $scope.trends.bar[3].chart.labels.push(`${year.year}`)
-                $scope.trends.bar[3].chart.data.push(year.airtime)
+    }
+    $scope.mapUrl = null;
+
+    $http
+    .get('/apikey')
+    .then((key) => {
+        $scope.apikey = key.data; 
+    
+        $http
+        .get(`/route/${$routeParams.origin}/${$routeParams.destination}/${$routeParams.airline}`)
+        .then((result) => {
+            if(result.status !== 200){
+                console.error(result.statusText)
+                return
             }
+            let res = result.data
+            if(res){
+                $scope.title = `${res.route.airline.id}: ${res.route.origin.id} to ${res.route.destination.id}`
+                $scope.subtitle = `${res.route.airline.name}: ${res.route.origin.name}, ${res.route.origin.city} to ${res.route.destination.name}, ${res.route.destination.city}`
+                                
+                $scope.coords.origin = {
+                    latitude: res.route.origin.latitude,
+                    longitude: res.route.origin.longitude,
+                }
+                $scope.coords.destination = {
+                    latitude: res.route.destination.latitude,
+                    longitude: res.route.destination.longitude,
+                }
 
-            $scope.trends.line = [
-                {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Airtime 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M mins`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}}
-            ]
+                $scope.mapUrl = $sce.trustAsResourceUrl(`https://www.google.com/maps/embed/v1/directions?key=${$scope.apikey}&origin=${$scope.coords.origin.latitude}, ${$scope.coords.origin.longitude}&destination=${$scope.coords.destination.latitude}, ${$scope.coords.destination.longitude}&mode=flying&zoom=6&maptype=satellite`)
 
-            for(let month of res.monthly){
-                $scope.trends.line[0].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[0].chart.data[0].push(month.passenger)
-                $scope.trends.line[1].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[1].chart.data[0].push(month.mail)
-                $scope.trends.line[2].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[2].chart.data[0].push(month.freight)
-                $scope.trends.line[3].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
-                $scope.trends.line[3].chart.data[0].push(month.airtime)
-            }       
-        }     
+                $scope.trends.bar = [
+                    {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
+                    {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Annual Airtime 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value.toLocaleString()}`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}},
+                ]
+                for(let year of res.annual){
+                    $scope.trends.bar[0].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[0].chart.data.push(year.passenger)
+                    $scope.trends.bar[1].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[1].chart.data.push(year.mail)
+                    $scope.trends.bar[2].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[2].chart.data.push(year.freight)
+                    $scope.trends.bar[3].chart.labels.push(`${year.year}`)
+                    $scope.trends.bar[3].chart.data.push(year.airtime)
+                }
+
+                $scope.trends.line = [
+                    {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
+                    {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                    {description: "Monthly Airtime 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value.toLocaleString()}`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}}
+                ]
+
+                for(let month of res.monthly){
+                    $scope.trends.line[0].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[0].chart.data[0].push(month.passenger)
+                    $scope.trends.line[1].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[1].chart.data[0].push(month.mail)
+                    $scope.trends.line[2].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[2].chart.data[0].push(month.freight)
+                    $scope.trends.line[3].chart.labels.push(`${months[month.month - 1]} ${month.year}`)
+                    $scope.trends.line[3].chart.data[0].push(month.airtime)
+                }       
+            }     
+        })
     })    
 }])
 
@@ -853,7 +902,7 @@ app.controller('CraftController', ['$scope', '$http', '$routeParams', '$location
     
     
     $http
-    .get(`/aircraft/${$routeParams.airline}`)
+    .get(`/aircraft/${$routeParams.aircraft}`)
     .then((result) => {
         if(result.status !== 200){
             console.error(result.statusText)
@@ -883,9 +932,9 @@ app.controller('CraftController', ['$scope', '$http', '$routeParams', '$location
             
             $scope.trends.bar = [
                 {description: "Annual Passengers 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Annual Airtime 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M mins`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}},
+                {description: "Annual Mail 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Annual Freight 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Annual Airtime 2018 - 2020", chart: {labels:[], data: [], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}},
             ]
             for(let year of res.annual){
                 $scope.trends.bar[0].chart.labels.push(`${year.year}`)
@@ -900,9 +949,9 @@ app.controller('CraftController', ['$scope', '$http', '$routeParams', '$location
 
             $scope.trends.line = [
                 {description: "Monthly Passengers 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], override: {type: 'line', fill: false, borderWidth:3}, options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000}K lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} passengers`}}}}},
-                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M lbs`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
-                {description: "Monthly Airtime 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M mins`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}}
+                {description: "Monthly Mail 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Monthly Freight 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} lbs`}}}}},
+                {description: "Monthly Airtime 2018 - 2020", chart: {labels:[], data: [[]], series: ['0'], options: {scales: {yAxes: [{ticks: {callback: (value, index, values) => {return `${value/1000000}M`}}}]}, tooltips: {callbacks: {label: (tooltipItem, data) => `${tooltipItem.yLabel.toLocaleString()} mins`}}}}}
             ]
 
             for(let month of res.monthly){
@@ -964,6 +1013,10 @@ app.controller('ComparisonController', ['$scope', '$rootScope', '$location', '$h
     }
 
     $scope.compare = async () => {
+    
+        $scope.insight = {}
+        $scope.trends = []
+
         let data = [
             await $http.get(`${$scope.currentCategory.getRoute($scope.current[0].value)}`),
             await $http.get(`${$scope.currentCategory.getRoute($scope.current[1].value)}`)
@@ -999,13 +1052,13 @@ app.controller('ComparisonController', ['$scope', '$rootScope', '$location', '$h
             }
             description += ' 2018 - 2020'
 
-            let min = Infinity
+            let max = 0
             for(let i of insights){
-                if(min > Math.min(...i.values)){
-                    min = Math.min(...i.values)
+                if(max < Math.max(...i.values)){
+                    max = Math.max(...i.values)
                 }
             }
-            min = min * 0.66
+            let min = 0 - max/2
             $scope.insight = {
                 description: description, 
                 chart: {
@@ -1295,7 +1348,7 @@ app.controller('ManageController', ['$scope', '$rootScope', '$http', function($s
             destination: {value: '', type: 'select', options: [''].concat($rootScope.lists.airports)},
             airline: {value: '', type: 'select', options: [''].concat($rootScope.lists.airlines)}
         }},
-        {name: 'Route Info', keys: ['origin', 'destination', 'airline', 'year', 'month', 'aircraft'], search: {
+        {name: 'Route Info', keys: ['routeid','origin', 'destination', 'airline', 'year', 'month', 'aircraft'], search: {
             origin: {value: '', type: 'select', options: [''].concat($rootScope.lists.airports)},
             destination: {value: '', type: 'select', options: [''].concat($rootScope.lists.airports)},
             airline: {value: '', type: 'select', options: [''].concat($rootScope.lists.airlines)},
@@ -1455,7 +1508,7 @@ app.controller('ManageController', ['$scope', '$rootScope', '$http', function($s
             await $scope.getData()
             $rootScope.init()
 
-            $scope.toUpdate = {
+            $scope.toDelete = {
                 index: null,
                 data: null
             }
