@@ -73,8 +73,8 @@ CREATE TABLE RouteInfo(
     Aircraft VARCHAR(3),
     AircraftConfig INTEGER,
     PRIMARY KEY(RouteID, Year, Month, Aircraft),
-    FOREIGN KEY(RouteID) REFERENCES AirlineRoute(RouteID),
-    FOREIGN KEY(ServiceClass) REFERENCES ServiceClass(SCID),
-    FOREIGN KEY(Aircraft) REFERENCES Aircraft(AircraftID),
-    FOREIGN KEY(AircraftConfig) REFERENCES AircraftConfiguration(ACID)
+    FOREIGN KEY(RouteID) REFERENCES AirlineRoute(RouteID) ON DELETE CASCADE ON MODIFY CASCADE,
+    FOREIGN KEY(ServiceClass) REFERENCES ServiceClass(SCID) ON DELETE CASCADE ON MODIFY CASCADE,
+    FOREIGN KEY(Aircraft) REFERENCES Aircraft(AircraftID) ON DELETE CASCADE ON MODIFY CASCADE,
+    FOREIGN KEY(AircraftConfig) REFERENCES AircraftConfiguration(ACID) ON DELETE CASCADE ON MODIFY CASCADE
 );

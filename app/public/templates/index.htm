@@ -1,5 +1,33 @@
 <div ng-controller="HomeController" id="connect-container">
-    <div class="containter">
-        <h3>Home</h3>
-    </div>
+    <div id="display">
+        <div id="logo-area">
+            <img src="/resources/logo-2.svg" class="logo"/>
+            <h3>Airline Route Dashboard</h3>
+        </div>
+        <div id="count-area">
+            <div class="count">
+                <span class='emphasize'>{{states}}</span> US States and Territories
+            </div>
+            <div class="count">
+                <span class='emphasize'>{{airports}}</span> Local Airports
+            </div>
+            <div class="count">
+                <span class='emphasize'>{{airlines}}</span> Airlines
+            </div>
+            <div class="count">
+                <span class='emphasize'>{{routes}}</span> Airline Routes
+            </div>
+            <div class="count">
+                <span class='emphasize'>{{aircraft}}</span> Aircraft Types
+            </div>
+        </div>
+        <div id="display-area">
+            <div ng-if="insight" id="insight-area" class='view'>
+
+                    <canvas class='chart chart-radar' chart-data="insight.chart.data" chart-labels="insight.chart.labels" chart-dataset-override="insight.chart.override" chart-colors= "insight.chart.colors" chart-options="insight.chart.options" chart-series="insight.chart.series" width=1000 height=500></canvas>
+
+            </div>
+        </div>
+
+    </div>    
 </div>

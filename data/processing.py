@@ -338,7 +338,7 @@ for ri in route_info.keys():
     info = route_info[ri]
     query = 'INSERT INTO routeinfo VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
     print(info.to_string())
-    cur.execute(query, (info.route.id, info.year, info.month, info.no_passengers, info.mail_weight, info.freight_weight, info.airtime, info.service_class.id, info.aircraft.id, info.aircraft_config.id))
+    cur.execute(query, (info.route.id, info.year, info.month, info.aircraft.id, info.no_passengers, info.mail_weight, info.freight_weight, info.airtime, info.service_class.id, info.aircraft.id, info.aircraft_config.id))
     conn.commit()
 
 conn.close()

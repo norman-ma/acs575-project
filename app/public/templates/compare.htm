@@ -1,0 +1,43 @@
+<div id="display" ng-controller='ComparisonController'>    
+    <div id="display-header">
+        <h1>Compare</h1>
+        <label for="category">Select Category: </label>
+        <select name="category" ng-model='currentCategory' ng-change='onchange()'>
+            <option ng-repeat='category in categories' ng-value="category" >{{category.name}}</option>
+        </select>
+        <div id="search-area" ng-if="currentCategory.value.length > 0">
+            <div class="autocomplete" ng-blur="suggestions[0] = []">
+                <input id="search-bar-1" class='search-bar' type="text" placeholder="{{currentCategory.name}}" ng-model='current[0].name' ng-change="updateSuggestions(0)" ng-focus="updateSuggestions()" >
+                <div class="autocomplete-items">
+                    <div ng-repeat='suggestion in suggestions[0]' ng-click="updateSearchBar(0, suggestion)">
+                        {{suggestion.name}}
+                    </div>
+                </div>
+            </div>
+            <div class="autocomplete" ng-blur="suggestions[1] = []">
+                <input id="search-bar-2" class='search-bar' type="text" placeholder="{{currentCategory.name}}" ng-model='current[1].name' ng-change="updateSuggestions(1)" ng-focus="updateSuggestions()" >
+                <div class="autocomplete-items">
+                    <div ng-repeat='suggestion in suggestions[1]' ng-click="updateSearchBar(1, suggestion)">
+                        {{suggestion.name}}
+                    </div>
+                </div>
+            </div>            
+            <input type="submit" value="Compare" ng-click='compare()'>
+        </div>
+    </div>
+    <div id="display-area">
+        <h2>{{title}}</h2>
+        <div ng-if="insight" id="insight-area" class='comparison'>
+            <div class="comparison">
+                <h3 class='comparison'>{{insight.description}}</h3>
+                <canvas class='chart chart-radar' chart-data="insight.chart.data" chart-labels="insight.chart.labels" chart-dataset-override="insight.chart.override" chart-colors= "insight.chart.colors" chart-options="insight.chart.options" chart-series="insight.chart.series" width=1000 height=500></canvas>
+            </div>
+        </div>
+        <div id="trend-area" ng-if='trends.length > 0' class='comparison'>
+            <div id='trend-{{$index}}' class="comparison" ng-repeat="trend in trends track by $index">
+                <h3 class='comparison'>{{trend.description}}</h3>
+                <canvas class='chart chart-line' chart-data="trend.chart.data" chart-labels="trend.chart.labels" chart-dataset-override="trend.chart.override" chart-colors="trend.chart.colors" chart-options="trend.chart.options" chart-series="trend.chart.series"></canvas>
+            </div>
+        </div> 
+    </div>
+</div>

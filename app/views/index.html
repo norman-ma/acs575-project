@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 
-    <title>AirlineDashboard</title>
+    <title>local.air</title>
 
     <!-- Bootstrap core CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
@@ -15,16 +15,28 @@
     <!-- Custom styles for this template -->
     <link href="/css/app.css" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.8.2/angular-sanitize.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.js"></script>
-    <script src="/js/app.js" type="text/javascript"></script>
-
+    <script src="/js/angular-chart.js/dist/angular-chart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.js"></script>    
+    <script src="/js/app.js" type="text/javascript"></script>    
 </head>
 
 <body>
 
     <div class="d-flex" id="wrapper" ng-app="DashboardApp">
+        <div ng-controller='AppController' ng-init='init()'></div>
+        <div id="sidebar">
+            <a href="/#!/" class='logo'><img src="/resources/logo-2.svg" class="logo"/></a>
+            <a href="/#!states"><div>States</div></a>
+            <a href="/#!airports"><div>Airports</div></a>                
+            <a href="/#!airlines"><div>Airlines</div></a>
+            <a href="/#!routes"><div>Routes</div></a>
+            <a href="/#!aircraft"><div>Aircraft</div></a>
+            <a href="/#!compare"><div>Compare</div></a>   
+            <a href="/#!manage"><div>Manage</div></a>         
+            <a href="/#!import"><div>Import</div></a>
+        </div>
         <ng-view></ng-view> 
     </div>
     <!-- /#wrapper -->

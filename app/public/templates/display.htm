@@ -1,0 +1,47 @@
+<div id="display">
+    <div id="display-header">
+        <h1>{{title}}</h1>
+        <p>{{subtitle}}</p>
+        <div id="search-area" ng-controller='SearchController'>
+            <div class="autocomplete" ng-blur="suggestions = []">
+                <input id="search-bar" class='search-bar' type="text" placeholder="{{category}}" ng-model='current.name' ng-change="updateSuggestions()" ng-focus="updateSuggestions()" >
+                <div id="autocomplete-list" class="autocomplete-items">
+                    <div ng-repeat='suggestion in suggestions' ng-click="updateSearchBar(suggestion)">
+                        {{suggestion.name}}
+                    </div>
+                </div>
+            </div>            
+            <input type="submit" value="Search" ng-click='$parent.search(current.value)'>
+        </div>
+    </div>
+    <div id="display-area">
+        <div ng-if="insights.length > 0" id="insight-area">
+            <div class="insight" ng-repeat="insight in insights">
+                <h3>{{insight.description}}</h3>
+                <div class='elements'>
+                    <div ng-repeat="element in insight.elements track by $index" class='element'>
+                        <a ng-href="{{element.link}}">
+                            <div class='index'> 
+                                {{$index + 1}}
+                            </div>
+                            <div class='content'>
+                                {{element.name}}
+                                <p class="value">{{element.value.toLocaleString()}} {{element.unit}}</p>
+                            </div>                            
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="trend-area">
+            <div id='trend-{{$index}}' class="trend" ng-repeat="trend in trends.bar track by $index">
+                <h3>{{trend.description}}</h3>
+                <canvas class='chart chart-bar' chart-data="trend.chart.data" chart-series='trend.chart.series' chart-labels="trend.chart.labels" chart-options="trend.chart.options"></canvas>
+            </div>
+            <div id='trend-{{$index}}' class="trend" ng-repeat="trend in trends.line track by $index">
+                <h3>{{trend.description}}</h3>
+                <canvas class='chart chart-line' chart-data="trend.chart.data" chart-series='trend.chart.series' chart-labels="trend.chart.labels" chart-options="trend.chart.options"></canvas>
+            </div>
+        </div>        
+    </div>
+</div>

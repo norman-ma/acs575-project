@@ -1,0 +1,52 @@
+<div id="display" ng-controller='ManageController'>    
+    <div id="display-header">
+        <h1>Manage</h1>
+        <label for="category">Select Category: </label>
+        <select name="category" ng-model='currentCategory' ng-change='onchange()'>
+            <option ng-repeat='category in categories' ng-value="category" >{{category.name}}</option>
+        </select>
+    </div>    
+    <div id="display-area">
+        <div id="query-area" ng-if='currentCategory.search'>
+            <div class="query-field" ng-repeat='(key, val) in currentCategory.search'>
+                <label for="{{key}}">{{key.toUpperCase()}}</label>
+                <input ng-if='val.type === "text"' type="text" name="{{key}}" ng-model='val.value'>
+                <input ng-if='val.type === "number"' type="number" name="{{key}}" ng-model='val.value'>
+                <select ng-if='val.type === "select"' name="{{key}}" ng-model='val.value'>
+                    <option ng-value="option.value" ng-repeat='option in val.options'>{{option.name}}</option>
+                </select>
+            </div>
+            <input type="submit" value="Get Data" ng-click='getData()'>
+        </div>
+        <div id="data-table" ng-if="data.rows.length > 0">
+            <table>
+                <tr>
+                    <th ng-repeat='field in data.fields'>{{field.name.toUpperCase()}}</th>
+                    <th></th>
+                </tr>
+                <tr ng-repeat='row in data.rows'>
+                    <td ng-repeat='field in data.fields track by $index'>{{row[field.name]}}</td>
+                    <td class='actions'>
+                        <span class="update" ng-if='toDelete.index === null' ng-click='setToUpdate($index)'>update</span>
+                        <span class="delete" ng-if='toDelete.index === null' ng-click='setToDelete($index)'>delete</span>
+                        <span class="delete" ng-if='toDelete.index === $index' ng-click='delete()'>confirm</span>
+                        <span class="cancel" ng-if='toDelete.index === $index' ng-click='cancel(1)'>cancel</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="update-area" ng-if='toUpdate.data'>
+            <div id="update-form">
+                <h2>Update</h2>
+                <div class="update-field" ng-repeat='field in data.fields track by $index'>
+                    <label for="{{field.name}}">{{field.name.toUpperCase()}}</label>
+                    <input type="text" name="{{field.name}}" ng-model='toUpdate.data[field.name]' ng-if='!currentCategory.keys.includes(field.name)'>
+                    <input type="text" name="{{field.name}}" ng-model='toUpdate.data[field.name]' ng-if='currentCategory.keys.includes(field.name)' readonly>
+                </div>
+                <input type="submit" value="Update" ng-click='update()'>
+                <input type="submit" class='cancel' value="Cancel" ng-click='cancel(0)'>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>

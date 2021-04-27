@@ -1,0 +1,35 @@
+<div id="display" ng-controller='ImportController'>    
+    <div id="display-header">
+        <h1>Import</h1>
+        <label for="category">Select Category: </label>
+        <select name="category" ng-model='currentCategory' ng-change='onchange()'>
+            <option ng-repeat='category in categories' ng-value="category" >{{category.name}}</option>
+        </select>
+    </div>
+    <div id="display-area" class='upload'>
+        <div id="form-area">
+            <div id="import-form" ng-if="currentCategory">
+                <p class="error" ng-if='error.length > 0'>{{error}}</p>
+                <div class="import-field" ng-repeat="field in currentCategory.labels">
+                    <label for='{{field.name}}'>{{field.name}}: </label>
+                    <input ng-if='field.type === "text"' type="text" name="{{field.name}}" ng-model='currentCategory.model[field.model]'>
+                    <input ng-if='field.type === "number"' type="number" name="{{field.name}}" ng-model='currentCategory.model[field.model]'>
+                    <select ng-if='field.type === "select"' name="{{field.name}}" ng-model='currentCategory.model[field.model]'>
+                        <option ng-value="option.value" ng-repeat='option in field.options'>{{option.name}}</option>
+                    </select>
+                </div>
+                <p>Or import from a file</p>
+                <input type="file" id='file' name='file'>
+                <input type="submit" value="Import" ng-click='import()'>
+            </div>
+        </div>
+        <div id="message-area" ng-if="message.show">
+            <p class="status"><span class="success">{{message.success}}</span> successful lines</p>
+            <p class="status"><span class="failure">{{message.fail}}</span> unsuccessful lines</p>
+            <div id="errors">
+                <p class="error" ng-repeat='error in message.errors'>{{error}}</p>
+            </div>            
+            <p class="status" ng-if='message.errors.length === 0'> No errors</p>
+        </div>
+    </div>
+</div>
